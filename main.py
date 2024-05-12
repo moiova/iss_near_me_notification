@@ -47,7 +47,7 @@ iss_longitude = float(iss_response.json()["iss_position"]["longitude"])
 
 # when it is dark at my location
 time_now = dt.now()
-if get_sunrise_sunset_hour()[0] <= time_now.hour <= get_sunrise_sunset_hour()[1] and is_iss_near_my_location():
+if time_now.hour <= get_sunrise_sunset_hour()[0] or time_now.hour >= get_sunrise_sunset_hour()[1] and is_iss_near_my_location():
     send_email()
 else:
     print("ISS is not near you")
