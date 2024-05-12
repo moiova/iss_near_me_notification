@@ -1,6 +1,7 @@
 import requests
 from datetime import datetime as dt
 import smtplib
+import time
 
 LATITUDE = 49.133730
 LONGITUDE = -16.285950
@@ -24,7 +25,7 @@ def get_sunrise_sunset_hour():
 
 # is position within -5 and +5 degrees of the ISS position
 def is_iss_near_my_location():
-    return LATITUDE -5 <= iss_latitude <= LATITUDE + 5 and LONGITUDE -5 <= iss_longitude <= LONGITUDE
+    return LATITUDE - 5 <= iss_latitude <= LATITUDE + 5 and LONGITUDE - 5 <= iss_longitude <= LONGITUDE
 
 
 def send_email():
@@ -35,7 +36,8 @@ def send_email():
     with smtplib.SMTP("smtp.gmail.com") as my_connection:
         my_connection.starttls()
         my_connection.login(user=my_email, password=password)
-        my_connection.sendmail(from_addr=my_email, to_addrs=to_email, msg="Subject: ISS is near you!\n\nISS is in the zone!")
+        my_connection.sendmail(from_addr=my_email, to_addrs=to_email,
+                               msg="Subject: ISS is near you!\n\nISS is in the zone!")
 
 
 iss_response = requests.get(url="http://api.open-notify.org/iss-now.json")
@@ -47,7 +49,13 @@ iss_longitude = float(iss_response.json()["iss_position"]["longitude"])
 
 # when it is dark at my location
 time_now = dt.now()
-if time_now.hour <= get_sunrise_sunset_hour()[0] or time_now.hour >= get_sunrise_sunset_hour()[1] and is_iss_near_my_location():
-    send_email()
-else:
-    print("ISS is not near you")
+hours_tuple = get_sunrise_sunset_hour()
+sunrise = hours_tuple[0]
+sunset = hours_tuple[1]
+
+while True:
+    time.sleep(60*3)
+    if time_now.hour <= sunrise or time_now.hour >= sunset and is_iss_near_my_location():
+        send_email()
+    else:
+        print("ISS is not near you")
